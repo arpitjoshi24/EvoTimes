@@ -7,7 +7,7 @@ const isProduction = process.env.NODE_ENV === "production";
 const cookieOptions = {
   httpOnly: true,
   secure: isProduction,
-  sameSite: "lax",
+  sameSite: isProduction ? "none" : "lax",
   path: "/",
   maxAge: 24 * 60 * 60 * 1000,
 };
@@ -29,7 +29,6 @@ function safeAdmin(admin) {
   };
 }
 
-
 exports.adminRegister = async (req, res, next) => {
   try {
     const { name, email, password, registrationKey } = req.body;
@@ -41,9 +40,11 @@ exports.adminRegister = async (req, res, next) => {
       });
     }
 
-    if (typeof name !== "string" ||
-        typeof email !== "string" ||
-        typeof password !== "string") {
+    if (
+      typeof name !== "string" ||
+      typeof email !== "string" ||
+      typeof password !== "string"
+    ) {
       return res.status(400).json({
         success: false,
         message: "Invalid input types",
@@ -153,7 +154,7 @@ exports.logout = async (req, res) => {
   res.clearCookie("evotimes_token", {
     httpOnly: true,
     secure: isProduction,
-    sameSite: "lax",
+    sameSite: isProduction ? "none" : "lax",
     path: "/",
   });
 
