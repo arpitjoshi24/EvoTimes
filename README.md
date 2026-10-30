@@ -1,11 +1,11 @@
-# EvoTimes 📰
+# EvoTimes 
 
 A modern web platform built to deliver content through a clean, accessible, and user-friendly digital experience.
 
-🌐 **Live Website:** https://www.evotimes.xyz/
+ **Live Website:** https://www.evotimes.xyz/
 
 
-## ✨ Features
+##  Features
 
 - **Modern Interface:** A clean and intuitive user experience.
 - **Responsive Design:** Designed to work across desktop, tablet, and mobile devices.
@@ -13,7 +13,7 @@ A modern web platform built to deliver content through a clean, accessible, and 
 - **Content Presentation:** Structured layouts for displaying information clearly.
 - **Optimized Experience:** A focus on usability, readability, and performance.
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 Update this section according to the technologies used in the project.
 
@@ -21,7 +21,7 @@ Update this section according to the technologies used in the project.
 - **Styling:** CSS / Tailwind CSS
 - **Deployment:** Vercel / Custom Hosting
 
-## 🚀 Getting Started
+##  Getting Started
 
 Follow these steps to set up the project locally.
 
@@ -59,7 +59,7 @@ Follow these steps to set up the project locally.
 
 5. Open the local URL displayed in your terminal.
 
-## 📂 Project Structure
+## Project Structure
 
 The folder structure depends on the framework used. A typical frontend project may look like this:
 
@@ -75,7 +75,7 @@ evotimes/
 └── README.md        # Project documentation
 ```
 
-## 🌍 Deployment
+##  Deployment
 
 The website is available at:
 
@@ -83,14 +83,14 @@ https://www.evotimes.xyz/
 
 Deployment instructions depend on the hosting provider and framework used by the project.
 
-## 🎯 Project Goals
+##  Project Goals
 
 - Provide a clear and intuitive browsing experience.
 - Maintain a consistent visual design.
 - Build a responsive and maintainable web application.
 - Organize website content for easy discovery.
 
-## 🤝 Contributing
+##  Contributing
 
 Contributions and suggestions are welcome.
 
@@ -99,7 +99,7 @@ Contributions and suggestions are welcome.
 3. Commit your changes.
 4. Open a pull request describing your improvements.
 
-## 📄 License
+##  License
 
 Add the appropriate license for this project before distributing or reusing its code.
 
