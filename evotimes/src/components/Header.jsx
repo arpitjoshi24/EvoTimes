@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { Search, X, Menu } from "lucide-react";
@@ -73,7 +72,15 @@ export default function Header() {
   return (
     <header className="mx-auto max-w-[1240px] px-4">
       <div className="flex items-center gap-3 border-b border-gray-200 py-3 text-[11px] text-gray-500">
-        <span className="shrink-0">Monday, October 19, 2026</span>
+        <span className="shrink-0">
+          {new Date().toLocaleDateString("en-US", {
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+            timeZone: "Asia/Kolkata",
+          })}
+        </span>
 
         <span className="hidden flex-1 text-center sm:block">
           Technology · Business · Innovation
@@ -109,10 +116,7 @@ export default function Header() {
         </form>
       </div>
 
-      <button
-        onClick={goHome}
-        className="block w-full py-5 text-center"
-      >
+      <button onClick={goHome} className="block w-full py-5 text-center">
         <span className="font-serif text-5xl font-bold tracking-tight sm:text-6xl">
           Evo<span className="text-red-700">Times</span>
         </span>
@@ -141,9 +145,7 @@ export default function Header() {
               key={category}
               onClick={() => chooseCategory(category)}
               className={`border-b border-gray-100 px-3 py-3 text-left text-xs font-semibold hover:text-red-700 md:border-0 md:py-4 ${
-                activeCategory === category
-                  ? "text-red-700"
-                  : "text-gray-800"
+                activeCategory === category ? "text-red-700" : "text-gray-800"
               }`}
             >
               {category}
