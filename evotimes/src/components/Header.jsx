@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { Search, X, Menu } from "lucide-react";
@@ -14,10 +13,33 @@ const categories = [
   "Networking",
 ];
 
+function formatToday(date) {
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function useToday() {
+  const [today, setToday] = useState(() => new Date());
+
+  useEffect(() => {
+    // Re-check every minute so the date rolls over at midnight
+    const id = setInterval(() => setToday(new Date()), 60 * 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  return today;
+}
+
 export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
+
+  const today = useToday();
 
   const isAdminRoute = location.pathname.startsWith("/admin");
 
@@ -73,7 +95,9 @@ export default function Header() {
   return (
     <header className="mx-auto max-w-[1240px] px-4">
       <div className="flex items-center gap-3 border-b border-gray-200 py-3 text-[11px] text-gray-500">
-        <span className="shrink-0">Monday, October 19, 2026</span>
+        <time dateTime={today.toISOString()} className="shrink-0">
+          {formatToday(today)}
+        </time>
 
         <span className="hidden flex-1 text-center sm:block">
           Technology · Business · Innovation
