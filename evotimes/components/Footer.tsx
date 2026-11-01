@@ -5,11 +5,10 @@ export default async function Footer() {
   cacheLife("days");
 
   return (
-    <footer>
-      {/* ...rest of your footer... */}
-      <span className="text-xs text-gray-500">
-        © {new Date().getFullYear()} EvoTimes
-      </span>
+    <footer className="border-t border-gray-200 py-5 text-center">
+      <p className="text-xs text-gray-500">
+        © {new Date().getFullYear()} EvoTimes. All rights reserved. | Your daily dose of technology and innovation.
+      </p>
     </footer>
   );
 }
