@@ -1,4 +1,3 @@
-
 import type { Metadata, Viewport } from "next";
 import { DM_Sans } from "next/font/google";
 import {
@@ -26,35 +25,23 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
 
-  icons: {
-    icon: [
-      { url: "/logo.png", type: "image/png" },
-    ],
-    shortcut: "/logo.png",
-    apple: "/logo.png",
+  alternates: {
+    canonical: "/",
   },
 
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
     locale: "en_IN",
+    url: "/",
     title: `${SITE_NAME} – Latest Technology News`,
     description: SITE_DESCRIPTION,
-    images: [
-      {
-        url: "/logo.png",
-        width: 512,
-        height: 512,
-        alt: `${SITE_NAME} Logo`,
-      },
-    ],
   },
 
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: `${SITE_NAME} – Latest Technology News`,
     description: SITE_DESCRIPTION,
-    images: ["/logo.png"],
   },
 
   robots: {
