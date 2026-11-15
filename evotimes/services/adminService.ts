@@ -6,6 +6,11 @@ interface AdminResponse {
   data?: { admin?: AdminUser };
 }
 
+interface ImageUploadResponse {
+  imageUrl: string;
+  publicId: string;
+}
+
 export async function adminLogin(email: string, password: string) {
   return apiRequest("/auth/admin-login", {
     method: "POST",
@@ -33,6 +38,15 @@ export async function createNews(article: ArticleInput) {
   return apiRequest("/news", {
     method: "POST",
     body: JSON.stringify(article),
+  });
+}
+
+export async function uploadNewsImage(file: File) {
+  const formData = new FormData();
+  formData.append("image", file);
+  return apiRequest<ImageUploadResponse>("/news/upload-image", {
+    method: "POST",
+    body: formData,
   });
 }
 
