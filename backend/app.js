@@ -1,4 +1,3 @@
-
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
@@ -8,12 +7,23 @@ const newsRoutes = require("./routes/newsRoutes");
 
 const app = express();
 
-const allowedOrigins = [
-  process.env.CLIENT_URL,
+// Render sits behind a proxy; needed for secure cookies to work.
+app.set("trust proxy", 1);
+
+const defaultOrigins = [
   "https://evotimes.xyz",
   "https://www.evotimes.xyz",
-  "http://localhost:5173",
-].filter(Boolean);
+  "http://localhost:3000", // Next.js dev
+  "http://localhost:5173", // Vite dev (optional, remove if unused)
+];
+
+// Supports one or many URLs: CLIENT_URL=https://a.com,https://b.com
+const envOrigins = (process.env.CLIENT_URL || "")
+  .split(",")
+  .map((url) => url.trim().replace(/\/+$/, ""))
+  .filter(Boolean);
+
+const allowedOrigins = [...new Set([...defaultOrigins, ...envOrigins])];
 
 app.use(
   cors({
@@ -22,6 +32,9 @@ app.use(
       if (!origin || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
+
+      console.log("CORS blocked origin:", origin);
+      console.log("Allowed origins:", allowedOrigins);
 
       return callback(new Error("Origin not allowed by CORS"));
     },
