@@ -31,6 +31,17 @@ export async function createNews(article) {
   });
 }
 
+export async function uploadNewsImage(file) {
+  const formData = new FormData();
+
+  formData.append("image", file);
+
+  return apiRequest("/news/upload-image", {
+    method: "POST",
+    body: formData,
+  });
+}
+
 export async function updateNews(id, article) {
   return apiRequest(`/news/${id}`, {
     method: "PATCH",

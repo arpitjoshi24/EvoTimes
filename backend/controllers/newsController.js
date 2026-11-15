@@ -1,7 +1,7 @@
-
 const mongoose = require("mongoose");
 const News = require("../models/News");
 const generateSlug = require("../utils/generateSlug");
+const cloudinary = require("../config/cloudinary");
 
 const categories = [
   "Top Stories",
@@ -43,7 +43,7 @@ function validateArticle(body, partial = false) {
       body.content.length === 0 ||
       !body.content.every(
         (paragraph) =>
-          typeof paragraph === "string" && paragraph.trim().length > 0
+          typeof paragraph === "string" && paragraph.trim().length > 0,
       )
     ) {
       errors.push("Content must be a non-empty array of paragraphs");
@@ -58,6 +58,12 @@ function validateArticle(body, partial = false) {
 
   if (body.image !== undefined && typeof body.image !== "string") {
     errors.push("Image must be a URL string");
+  }
+  if (
+    body.imagePublicId !== undefined &&
+    typeof body.imagePublicId !== "string"
+  ) {
+    errors.push("Image public ID must be a string");
   }
 
   if (body.author !== undefined && typeof body.author !== "string") {
@@ -82,6 +88,7 @@ function articlePayload(body) {
     "description",
     "content",
     "image",
+    "imagePublicId",
     "category",
     "author",
     "status",
@@ -148,7 +155,7 @@ exports.getNews = async (req, res, next) => {
     const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
     const limit = Math.min(
       50,
-      Math.max(1, Number.parseInt(req.query.limit, 10) || 10)
+      Math.max(1, Number.parseInt(req.query.limit, 10) || 10),
     );
 
     const filter = { status: "published" };
@@ -271,18 +278,29 @@ exports.updateNews = async (req, res, next) => {
 
     // Preserve the original publication date when editing an article
     // that remains published without explicitly changing its status.
-    if (
-      req.body.status === undefined &&
-      existing.status === "published"
-    ) {
+    if (req.body.status === undefined && existing.status === "published") {
       delete payload.publishedAt;
     }
 
-    const article = await News.findByIdAndUpdate(
-      req.params.id,
-      payload,
-      { new: true, runValidators: true }
-    );
+    const article = await News.findByIdAndUpdate(req.params.id, payload, {
+      new: true,
+      runValidators: true,
+    });
+
+    // Delete the previous Cloudinary image after successful update.
+    if (
+      existing.imagePublicId &&
+      existing.imagePublicId !== article.imagePublicId
+    ) {
+      try {
+        await cloudinary.uploader.destroy(existing.imagePublicId);
+      } catch (imageError) {
+        console.error(
+          "Could not delete previous Cloudinary image:",
+          imageError,
+        );
+      }
+    }
 
     return res.status(200).json({
       success: true,
@@ -318,6 +336,14 @@ exports.deleteNews = async (req, res, next) => {
         success: false,
         message: "News article not found",
       });
+    }
+
+    if (article.imagePublicId) {
+      try {
+        await cloudinary.uploader.destroy(article.imagePublicId);
+      } catch (imageError) {
+        console.error("Could not delete Cloudinary image:", imageError);
+      }
     }
 
     return res.status(200).json({

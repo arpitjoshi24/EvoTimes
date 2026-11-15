@@ -1,11 +1,12 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   createNews,
   getCurrentAdmin,
   getNewsForEditing,
   updateNews,
+  uploadNewsImage,
 } from "../services/adminService";
 
 const categories = [
@@ -39,6 +40,12 @@ export default function AdminNewsForm() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  // Cloudinary image upload state
+  const [imagePublicId, setImagePublicId] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const fileInputRef = useRef(null);
+
   useEffect(() => {
     async function initialize() {
       try {
@@ -59,6 +66,7 @@ export default function AdminNewsForm() {
               : article.content || "",
             status: article.status || "draft",
           });
+          setImagePublicId(article.imagePublicId || "");
         }
       } catch {
         navigate("/admin/login", { replace: true });
@@ -75,6 +83,31 @@ export default function AdminNewsForm() {
     setForm((current) => ({ ...current, [name]: value }));
   }
 
+  async function handleImageUpload(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setUploadError("");
+
+    try {
+      const result = await uploadNewsImage(file);
+      setForm((current) => ({ ...current, image: result.imageUrl }));
+      setImagePublicId(result.publicId);
+    } catch (err) {
+      setUploadError(err.message || "Image upload failed. Try again.");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function handleRemoveImage() {
+    setForm((current) => ({ ...current, image: "" }));
+    setImagePublicId("");
+    setUploadError("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
   async function handleSubmit(event) {
     event.preventDefault();
     setSaving(true);
@@ -84,6 +117,7 @@ export default function AdminNewsForm() {
       title: form.title.trim(),
       description: form.description.trim(),
       image: form.image.trim(),
+      imagePublicId,
       category: form.category,
       author: form.author.trim() || "EvoTimes Editorial",
       content: form.content
@@ -183,29 +217,76 @@ export default function AdminNewsForm() {
 
             <div>
               <label htmlFor="image" className="mb-2 block text-sm font-semibold">
-                Cover image URL
+                Cover image
               </label>
-              <input
-                id="image"
-                name="image"
-                type="url"
-                value={form.image}
-                onChange={handleChange}
-                className="w-full border border-neutral-300 px-4 py-3 outline-none focus:border-red-700"
-                placeholder="https://example.com/image.jpg"
-              />
-              {form.image && (
-                <img
-                  src={form.image}
-                  alt="Cover preview"
-                  className="mt-4 max-h-64 w-full object-cover"
-                  onError={(event) => {
-                    event.currentTarget.style.display = "none";
-                  }}
-                  onLoad={(event) => {
-                    event.currentTarget.style.display = "block";
-                  }}
+
+              {/* File upload */}
+              <div className="flex items-center gap-3">
+                <label
+                  htmlFor="image-file"
+                  className={`cursor-pointer border border-neutral-300 px-4 py-2.5 text-sm font-semibold hover:border-red-700 hover:text-red-700 ${uploading ? "cursor-not-allowed opacity-60" : ""}`}
+                >
+                  {uploading ? "Uploading…" : "Choose file"}
+                </label>
+                <input
+                  id="image-file"
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  disabled={uploading}
+                  onChange={handleImageUpload}
                 />
+                <span className="text-xs text-neutral-500">JPG, PNG or WebP · max 5 MB</span>
+              </div>
+
+              {uploadError && (
+                <p className="mt-2 text-xs text-red-700">{uploadError}</p>
+              )}
+
+              {/* URL fallback — still works for existing articles */}
+              <div className="mt-3">
+                <label htmlFor="image" className="mb-1 block text-xs text-neutral-500">
+                  Or paste an image URL directly
+                </label>
+                <input
+                  id="image"
+                  name="image"
+                  type="url"
+                  value={form.image}
+                  onChange={(e) => {
+                    // When admin manually edits the URL, clear the publicId
+                    // so we don't accidentally delete an unrelated Cloudinary asset.
+                    handleChange(e);
+                    setImagePublicId("");
+                  }}
+                  className="w-full border border-neutral-300 px-4 py-3 outline-none focus:border-red-700"
+                  placeholder="https://example.com/image.jpg"
+                />
+              </div>
+
+              {/* Preview + remove */}
+              {form.image && (
+                <div className="relative mt-4">
+                  <img
+                    src={form.image}
+                    alt="Cover preview"
+                    className="max-h-64 w-full object-cover"
+                    onError={(event) => {
+                      event.currentTarget.style.display = "none";
+                    }}
+                    onLoad={(event) => {
+                      event.currentTarget.style.display = "block";
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="absolute right-2 top-2 bg-black/60 px-2 py-1 text-xs font-semibold text-white hover:bg-black/80"
+                  >
+                    Remove
+                  </button>
+                </div>
               )}
             </div>
 
