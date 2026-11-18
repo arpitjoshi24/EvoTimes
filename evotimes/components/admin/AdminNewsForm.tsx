@@ -26,6 +26,7 @@ import {
   getCurrentAdmin,
   getNewsForEditing,
   updateNews,
+  uploadNewsImage,
 } from "@/services/adminService";
 import { errorMessage } from "@/services/api";
 import type { ArticleInput } from "@/types/news";
@@ -66,6 +67,12 @@ export default function AdminNewsForm({ id }: { id?: string }) {
   const [error, setError] = useState("");
   const [tab, setTab] = useState<"write" | "preview">("write");
 
+  // Cloudinary image upload state
+  const [imagePublicId, setImagePublicId] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const contentRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -88,6 +95,7 @@ export default function AdminNewsForm({ id }: { id?: string }) {
               : article.content || "",
             status: article.status || "draft",
           });
+          setImagePublicId(article.imagePublicId || "");
         }
       } catch {
         router.replace("/admin/login");
@@ -104,6 +112,31 @@ export default function AdminNewsForm({ id }: { id?: string }) {
   ) {
     const { name, value } = event.target;
     setForm((current) => ({ ...current, [name]: value }));
+  }
+
+  async function handleImageUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setUploadError("");
+
+    try {
+      const result = await uploadNewsImage(file);
+      setForm((current) => ({ ...current, image: result.imageUrl }));
+      setImagePublicId(result.publicId);
+    } catch (err) {
+      setUploadError(errorMessage(err, "Image upload failed. Try again."));
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function handleRemoveImage() {
+    setForm((current) => ({ ...current, image: "" }));
+    setImagePublicId("");
+    setUploadError("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
   // ---- Formatting helpers (work on the content textarea) ----
@@ -213,6 +246,7 @@ export default function AdminNewsForm({ id }: { id?: string }) {
       title: form.title.trim(),
       description: form.description.trim(),
       image: form.image.trim(),
+      imagePublicId,
       category: form.category,
       author: form.author.trim() || "EvoTimes Editorial",
       content: form.content
@@ -312,29 +346,75 @@ export default function AdminNewsForm({ id }: { id?: string }) {
 
             <div>
               <label htmlFor="image" className="mb-2 block text-sm font-semibold">
-                Cover image URL
+                Cover image
               </label>
-              <input
-                id="image"
-                name="image"
-                type="url"
-                value={form.image}
-                onChange={handleChange}
-                className="w-full border border-neutral-300 px-4 py-3 outline-none focus:border-red-700"
-                placeholder="https://example.com/image.jpg"
-              />
-              {form.image && (
-                <img
-                  src={form.image}
-                  alt="Cover preview"
-                  className="mt-4 max-h-64 w-full object-cover"
-                  onError={(event) => {
-                    event.currentTarget.style.display = "none";
-                  }}
-                  onLoad={(event) => {
-                    event.currentTarget.style.display = "block";
-                  }}
+
+              {/* File upload */}
+              <div className="flex items-center gap-3">
+                <label
+                  htmlFor="image-file"
+                  className={`cursor-pointer border border-neutral-300 px-4 py-2.5 text-sm font-semibold hover:border-red-700 hover:text-red-700 ${uploading ? "cursor-not-allowed opacity-60" : ""}`}
+                >
+                  {uploading ? "Uploading…" : "Choose file"}
+                </label>
+                <input
+                  id="image-file"
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  disabled={uploading}
+                  onChange={handleImageUpload}
                 />
+                <span className="text-xs text-neutral-500">JPG, PNG or WebP · max 5 MB</span>
+              </div>
+
+              {uploadError && (
+                <p className="mt-2 text-xs text-red-700">{uploadError}</p>
+              )}
+
+              {/* URL fallback — still works for existing articles with plain URLs */}
+              <div className="mt-3">
+                <label htmlFor="image" className="mb-1 block text-xs text-neutral-500">
+                  Or paste an image URL directly
+                </label>
+                <input
+                  id="image"
+                  name="image"
+                  type="url"
+                  value={form.image}
+                  onChange={(e) => {
+                    handleChange(e);
+                    // Clear publicId when URL is manually edited
+                    setImagePublicId("");
+                  }}
+                  className="w-full border border-neutral-300 px-4 py-3 outline-none focus:border-red-700"
+                  placeholder="https://example.com/image.jpg"
+                />
+              </div>
+
+              {/* Preview + remove */}
+              {form.image && (
+                <div className="relative mt-4">
+                  <img
+                    src={form.image}
+                    alt="Cover preview"
+                    className="max-h-64 w-full object-cover"
+                    onError={(event) => {
+                      event.currentTarget.style.display = "none";
+                    }}
+                    onLoad={(event) => {
+                      event.currentTarget.style.display = "block";
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="absolute right-2 top-2 bg-black/60 px-2 py-1 text-xs font-semibold text-white hover:bg-black/80"
+                  >
+                    Remove
+                  </button>
+                </div>
               )}
             </div>
 

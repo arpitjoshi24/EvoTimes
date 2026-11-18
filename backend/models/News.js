@@ -1,4 +1,3 @@
-
 const mongoose = require("mongoose");
 
 const newsSchema = new mongoose.Schema(
@@ -35,6 +34,11 @@ const newsSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+
+    imagePublicId: {
+      type: String,
+      default: "",
+    },
     category: {
       type: String,
       required: true,
@@ -64,7 +68,7 @@ const newsSchema = new mongoose.Schema(
       default: null,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 newsSchema.index({ status: 1, publishedAt: -1 });

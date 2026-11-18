@@ -8,6 +8,7 @@ export interface Article {
   description: string;
   content: string[];
   image?: string;
+  imagePublicId?: string;
   category: string;
   author?: string;
   status?: ArticleStatus;
@@ -21,6 +22,7 @@ export interface ArticleInput {
   title: string;
   description: string;
   image: string;
+  imagePublicId?: string;
   category: string;
   author: string;
   content: string[];
